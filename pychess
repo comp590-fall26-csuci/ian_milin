@@ -1,0 +1,305 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+
+# Fix environment to let pychess run in place
+if getattr(sys, "frozen", False):
+    this_dir = os.path.dirname(sys.executable)
+else:
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+if (
+    os.path.isdir(os.path.join(this_dir, "lib/pychess"))
+    and os.path.join(this_dir, "lib") not in sys.path
+):
+    sys.path = [os.path.join(this_dir, "lib")] + sys.path
+
+# Create splash screen
+try:
+    import gi
+
+    gi.require_version("Gtk", "3.0")
+    from gi.repository import Gtk, Gdk
+
+    splash = Gtk.Window()
+    splash.props.type_hint = Gdk.WindowTypeHint.SPLASHSCREEN
+    splash.set_decorated(False)
+    splash.set_position(Gtk.WindowPosition.CENTER)
+    from pychess.System import prefix
+
+    splash.add(Gtk.Image().new_from_file(prefix.addDataPrefix("glade/about.png")))
+    splash.show_all()
+    while Gtk.events_pending():
+        Gtk.main_iteration()
+except Exception:
+    print("Failed to create splash screen")
+
+import argparse
+import asyncio
+import gettext
+import locale
+import logging
+
+if not getattr(sys, "frozen", False):
+    try:
+        import faulthandler
+
+        faulthandler.enable()
+    except ImportError:
+        pass
+
+try:
+    import cairo
+
+    cairo.version
+except ImportError:
+    print("ERROR: PyChess requires python-cairo to be installed.")
+    sys.exit(1)
+
+try:
+    import gi
+except ImportError:
+    print("ERROR: PyChess requires pygobject to be installed.")
+    sys.exit(1)
+
+try:
+    gi.require_version("cairo", "1.0")
+    gi.require_version("GLib", "2.0")
+    gi.require_version("Gdk", "3.0")
+    gi.require_version("GdkPixbuf", "2.0")
+    gi.require_version("GObject", "2.0")
+    gi.require_version("Gtk", "3.0")
+    gi.require_version("GtkSource", "4")
+    gi.require_version("Pango", "1.0")
+    gi.require_version("PangoCairo", "1.0")
+    gi.require_version("Rsvg", "2.0")
+    from gi.events import GLibEventLoopPolicy
+except ValueError as e:
+    print("ERROR: Not all dependencies installed! You can find them in INSTALL")
+    print(e)
+    sys.exit(1)
+
+try:
+    import sqlalchemy
+
+    sqlalchemy.__version__
+except ImportError:
+    print("ERROR: PyChess requires sqlalchemy to be installed")
+    sys.exit(1)
+
+try:
+    import psutil
+
+    psutil.__version__
+except ImportError:
+    print("ERROR: PyChess requires psutil to be installed")
+    sys.exit(1)
+
+# Ensure access to data store
+try:
+    import pychess
+    from pychess.System.prefix import addDataPrefix, getDataPrefix, isInstalled
+except ImportError:
+    print("ERROR: Could not import modules.")
+    print("Please try to run pychess as stated in the INSTALL file")
+    sys.exit(1)
+
+# Parse command line arguments
+try:
+    from pychess.System.Log import log, LoggerWriter, setup_glib_logging
+except ImportError:
+    pass
+
+if getattr(sys, "frozen", False):
+    sys.stdout = LoggerWriter(logging.getLogger("STDOUT"), logging.INFO)
+    sys.stderr = LoggerWriter(logging.getLogger("STDERR"), logging.ERROR)
+
+log_viewer = False
+chess_file = sys.argv[1] if len(sys.argv) > 1 else None
+ics_host = None
+ics_port = None
+
+version = f"{pychess.VERSION} ({pychess.VERSION_NAME})"
+description = "The PyChess chess client, version %s." % version
+
+parser = argparse.ArgumentParser(description=description)
+parser.add_argument("--version", action="version", version="%(prog)s" + " %s" % version)
+parser.add_argument(
+    "--log-debug",
+    action="store_true",
+    help="change default logging level from INFO to DEBUG",
+)
+parser.add_argument(
+    "--no-gettext", action="store_true", help="turn off locale translations"
+)
+parser.add_argument("--log-viewer", action="store_true", help="enable Log Viewer menu")
+parser.add_argument(
+    "--purge-recent", action="store_true", help="purge recent games menu"
+)
+parser.add_argument(
+    "--ics-host",
+    action="store",
+    help="the hostname of internet chess server (default is freechess.org)",
+)
+parser.add_argument(
+    "--ics-port",
+    action="store",
+    type=int,
+    help="the connection port of internet chess server (default is 5000)",
+)
+parser.add_argument(
+    "chess_file",
+    nargs="?",
+    metavar="chessfile",
+    help="a chess file in PGN, EPD, FEN, or HTML (Chess Alpha 2 Diagram) format",
+)
+parser.add_argument(
+    "--no-version-check", action="store_true", help="disable online version check"
+)
+
+args = parser.parse_args()
+log_debug = args.log_debug
+no_gettext = args.no_gettext
+log_viewer = args.log_viewer
+purge_recent = args.purge_recent
+chess_file = args.chess_file
+ics_host = args.ics_host
+ics_port = args.ics_port
+version_check = not args.no_version_check
+
+# Set sqlite temp dir path
+os.environ["SQLITE_TMPDIR"] = os.path.expanduser("~")
+
+
+# Set up translations
+if no_gettext:
+    os.environ["LANG"] = "C"
+    locale.setlocale(locale.LC_ALL, "C")
+else:
+    # Honor a UI language chosen in Preferences (stored in the config
+    # file as General/langcombo). An empty value means "follow the system
+    # locale". Setting LANGUAGE makes gettext prefer that catalog. This is
+    # read here, before gettext.install(), because translations are bound
+    # when widgets are built, so the choice applies on the next startup.
+    try:
+        import configparser
+
+        from pychess.System import prefix as _prefix
+
+        _cfg = configparser.RawConfigParser()
+        _cfg_path = _prefix.addUserConfigPrefix("config")
+        if os.path.isfile(_cfg_path):
+            _cfg.read(_cfg_path)
+            _ui_lang = _cfg.get("General", "langcombo", fallback="").strip()
+            if _ui_lang:
+                os.environ["LANGUAGE"] = _ui_lang
+    except Exception:
+        # Never let a bad config file prevent PyChess from starting.
+        pass
+
+    locale.setlocale(locale.LC_ALL, "")
+    # http://stackoverflow.com/questions/3678174/python-gettext-doesnt-load-translations-on-windows
+    if sys.platform.startswith("win"):
+        if os.getenv("LANG") is None:
+            lang, enc = locale.getdefaultlocale()
+            os.environ["LANG"] = lang
+
+    locale.setlocale(locale.LC_ALL, "")
+
+    domain = "pychess"
+    if isInstalled():
+        if sys.platform == "win32":
+            locale_dir = os.path.join(os.path.dirname(getDataPrefix()), "locale")
+        else:
+            locale_dir = None
+    else:
+        locale_dir = addDataPrefix("lang")
+
+    gettext.install(domain, localedir=locale_dir, names=("ngettext",))
+
+    # http://stackoverflow.com/questions/10094335/how-to-bind-a-text-domain-to-a-local-folder-for-gettext-under-gtk3
+    if sys.platform == "win32":
+        from ctypes import cdll
+
+        libintl = cdll.LoadLibrary("libintl-8")
+        libintl.bindtextdomain(domain, locale_dir)
+        libintl.bind_textdomain_codeset(domain, "UTF-8")
+    elif sys.platform == "darwin":
+        from pychess.System.libintl import load_libintl
+
+        libintl = load_libintl()
+        if libintl is None:
+            print(
+                "WARNING: libintl not found; translations may be unavailable. "
+                "Install gettext with `brew install gettext`.",
+                file=sys.stderr,
+            )
+        else:
+            libintl.bindtextdomain(domain, locale_dir)
+
+    else:
+        locale.bindtextdomain(domain, locale_dir)
+
+try:
+    from pychess.System.LogEmitter import GLogHandler, logemitter
+    from pychess.System.prefix import getUserDataPrefix, addUserDataPrefix
+    from pychess.System import conf, cancel_all_tasks
+    from pychess.Main import PyChess
+except ImportError:
+    raise
+    pass
+
+conf.no_gettext = no_gettext
+
+# Start logging
+if log_debug:
+    setup_glib_logging()
+
+if log_viewer:
+    log.logger.addHandler(GLogHandler(logemitter))
+log.logger.setLevel(logging.DEBUG if log_debug is True else logging.INFO)
+oldlogs = [log for log in os.listdir(getUserDataPrefix()) if log.endswith(".log")]
+conf.set("max_log_files", conf.get("max_log_files"))
+oldlogs.sort()
+lel_oldlogs = len(oldlogs)
+while lel_oldlogs > conf.get("max_log_files"):
+    try:
+        os.remove(addUserDataPrefix(oldlogs[0]))
+        del oldlogs[0]
+    except OSError:
+        pass
+    lel_oldlogs -= 1
+
+
+async def start(gtk_app):
+    # give chence to the splash screen to appear
+    await asyncio.sleep(0)
+    gtk_app.register()
+    gtk_app.activate()
+
+
+policy = GLibEventLoopPolicy()
+asyncio.set_event_loop_policy(policy)
+loop = policy.get_event_loop()
+
+gtk_app = PyChess(
+    log_viewer,
+    purge_recent,
+    chess_file,
+    ics_host,
+    ics_port,
+    splash,
+    version_check,
+)
+
+if log_debug:
+    loop.set_debug(enabled=True)
+
+log.debug(loop)
+
+try:
+    loop.create_task(start(gtk_app))
+    loop.run_forever()
+finally:
+    loop.run_until_complete(cancel_all_tasks())
+    loop.close()

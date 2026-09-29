@@ -1,0 +1,23 @@
+# Direct dependencies
+pexpect==4.9.0
+psutil==7.2.2
+pycairo==1.29.1
+PyGObject==3.58.0
+SQLAlchemy==2.0.54
+websockets==16.1.1
+
+# Test-only dependencies
+pytest==9.1.1
+
+# Indirect dependencies
+exceptiongroup==1.3.1
+greenlet==3.5.6
+importlib_metadata==9.0.1
+iniconfig==2.3.0
+packaging==26.3
+pluggy==1.6.0
+ptyprocess==0.7.0
+Pygments==2.21.0
+tomli==2.4.1
+typing_extensions==4.16.0
+zipp==4.1.0
