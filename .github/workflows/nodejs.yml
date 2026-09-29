@@ -1,0 +1,65 @@
+name: Node CI
+on:
+  - push
+  - pull_request
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NAME: cloudcmd
+    strategy:
+      matrix:
+        node-version:
+          - 22.x
+          - 24.x
+          - 26.x
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install Redrun
+        run: bun i playwright redrun madrun -g --no-save
+      - name: Install
+        run: bun i --no-save
+      - name: Init Madrun
+        run: madrun --init
+      - name: Lint
+        run: redrun fix:lint
+      - name: Typos
+        uses: coderaiser/typos.ai@v1.1.8
+        with:
+          key: ${{ secrets.TYPOS_AI_KEY }}
+      - name: Commit fixes
+        uses: EndBug/add-and-commit@v10
+        continue-on-error: true
+        with:
+          message: "chore: ${{ env.NAME }}: actions: lint ☘️"
+      - name: Build
+        run: redrun build
+      - name: Cache Playwright browsers
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('**/package.json') }}
+      - name: Install Playwright browsers
+        run: playwright install chromium --with-deps
+      - name: Test E2E Client
+        run: redrun test:e2e:client
+      - name: Test E2E Menu
+        run: redrun test:e2e:menu
+      - name: Test
+        run: redrun test
+      - name: Coverage
+        run: redrun coverage coverage:report
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
