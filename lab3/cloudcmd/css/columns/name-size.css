@@ -1,0 +1,25 @@
+.name {
+    width: 77%;
+}
+
+.size {
+    float: none;
+    margin-right: 0;
+}
+
+.owner {
+    display: none;
+}
+
+.mode {
+    display: none;
+}
+
+.date {
+    display: none;
+}
+
+.time {
+    display: none;
+}
+

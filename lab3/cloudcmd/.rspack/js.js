@@ -1,0 +1,199 @@
+import {resolve, sep} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {env} from 'node:process';
+import {rspack} from '@rspack/core';
+
+const resolveModule = (a) => fileURLToPath(import.meta.resolve(a));
+
+const {
+    ContextReplacementPlugin,
+    EnvironmentPlugin,
+    IgnorePlugin,
+    NormalModuleReplacementPlugin,
+    ProvidePlugin,
+} = rspack;
+
+const modules = './modules';
+const dirModules = './client/modules';
+const dirCss = './css';
+const dirThemes = `${dirCss}/themes`;
+const dirColumns = `${dirCss}/columns`;
+const dir = './client';
+const {NODE_ENV} = env;
+const isDev = NODE_ENV === 'development';
+
+const rootDir = new URL('..', import.meta.url).pathname;
+const dist = resolve(rootDir, 'dist');
+const distDev = resolve(rootDir, 'dist-dev');
+const devtool = isDev ? 'eval' : 'source-map';
+
+const noParse = (a) => a.endsWith('.spec.js');
+
+// codegen.macro is a babel-macro (build-time codegen), not supported by
+// Rspack's native SWC transform, so client/sw/sw.js (the only file that
+// uses it) keeps going through babel-loader. Everything else uses
+// Rspack's built-in SWC loader, which is the main source of the speedup.
+const rules = [{
+    test: /sw\/sw\.js$/,
+    exclude: /node_modules/,
+    loader: 'babel-loader',
+}, {
+    test: /\.[mc]?js$/,
+    resolve: {
+        fullySpecified: false,
+    },
+    exclude: [/node_modules/, /sw\/sw\.js$/],
+    loader: 'builtin:swc-loader',
+    options: {
+        jsc: {
+            parser: {
+                syntax: 'ecmascript',
+            },
+        },
+        env: {
+            targets: 'defaults',
+        },
+    },
+}, {
+    test: /\.css$/,
+    include: /node_modules\/aleman/,
+    type: 'asset/source',
+}];
+
+const plugins = [
+    new NormalModuleReplacementPlugin(/^node:/, (resource) => {
+        resource.request = resource.request.replace(/^node:/, '');
+    }),
+    new ContextReplacementPlugin(/@putout\/engine-loader/, /NEVER_MATCH^/),
+    new IgnorePlugin({
+        resourceRegExp: /hermes-parser/,
+    }),
+    new NormalModuleReplacementPlugin(/esprima/, `${rootDir}.rspack/empty.js`),
+    new NormalModuleReplacementPlugin(/acorn-stage3/, `${rootDir}.rspack/empty.js`),
+    new NormalModuleReplacementPlugin(/tenko/, `${rootDir}.rspack/empty.js`),
+    new EnvironmentPlugin({
+        NODE_ENV,
+    }),
+    new ProvidePlugin({
+        process: 'process/browser',
+    }),
+];
+
+const splitChunks = {
+    chunks: (chunk) => chunk.name !== './modules/menu',
+    cacheGroups: {
+        menuStyles: {
+            name: 'cloudcmd.common',
+            type: 'css/mini-extract',
+            chunks: (chunk) => chunk.name === './modules/menu',
+            enforce: true,
+            priority: 1,
+        },
+        abcCommon: {
+            name: 'cloudcmd.common',
+            chunks: (chunk) => {
+                const lazyChunks = [
+                    './modules/menu',
+                    'sw',
+                    'nojs',
+                    'view',
+                    'edit',
+                    'terminal',
+                    'config',
+                    'user-menu',
+                    'help',
+                    'themes/dark',
+                    'themes/light',
+                    'columns/name-size',
+                    'columns/name-size-date',
+                    'columns/name-size-time',
+                    'columns/name-size-date-time',
+                ];
+                
+                return !lazyChunks.includes(chunk.name);
+            },
+            minChunks: 1,
+            enforce: true,
+            priority: -1,
+            reuseExistingChunk: true,
+        },
+    },
+};
+
+export default {
+    resolve: {
+        symlinks: false,
+        alias: {
+            'node:process': 'process',
+            'node:path': 'path',
+        },
+        fallback: {
+            'path': resolveModule('path-browserify'),
+            'process': resolveModule('process/browser'),
+            'process/browser': resolveModule('process/browser'),
+            'util': resolveModule('util'),
+            'module': false,
+        },
+    },
+    devtool,
+    optimization: {
+        splitChunks,
+    },
+    entry: {
+        'themes/dark': `${dirThemes}/dark.css`,
+        'themes/light': `${dirThemes}/light.css`,
+        'columns/name-size': `${dirColumns}/name-size.css`,
+        'columns/name-size-date': `${dirColumns}/name-size-date.css`,
+        'columns/name-size-date-time': `${dirColumns}/name-size-date-time.css`,
+        'nojs': `${dirCss}/nojs.css`,
+        'help': `${dirCss}/help.css`,
+        'view': `${dirCss}/view.css`,
+        'config': `${dirCss}/config.css`,
+        'terminal': `${dirCss}/terminal.css`,
+        'user-menu': `${dirCss}/user-menu.css`,
+        'sw': `${dir}/sw/sw.js`,
+        'cloudcmd': `${dir}/cloudcmd.js`,
+        [`${modules}/edit`]: `${dirModules}/edit.js`,
+        [`${modules}/edit-file`]: `${dirModules}/edit-file.js`,
+        [`${modules}/edit-file-vim`]: `${dirModules}/edit-file-vim.js`,
+        [`${modules}/edit-names`]: `${dirModules}/edit-names.js`,
+        [`${modules}/edit-names-vim`]: `${dirModules}/edit-names-vim.js`,
+        [`${modules}/menu`]: `${dirModules}/menu/index.js`,
+        [`${modules}/view`]: `${dirModules}/view/index.js`,
+        [`${modules}/help`]: `${dirModules}/help.js`,
+        [`${modules}/markdown`]: `${dirModules}/markdown.js`,
+        [`${modules}/config`]: `${dirModules}/config/index.js`,
+        [`${modules}/contact`]: `${dirModules}/contact.js`,
+        [`${modules}/upload`]: `${dirModules}/upload.js`,
+        [`${modules}/operation`]: `${dirModules}/operation/index.js`,
+        [`${modules}/konsole`]: `${dirModules}/konsole.js`,
+        [`${modules}/terminal`]: `${dirModules}/terminal.js`,
+        [`${modules}/terminal-run`]: `${dirModules}/terminal-run.js`,
+        [`${modules}/cloud`]: `${dirModules}/cloud.js`,
+        [`${modules}/user-menu`]: `${dirModules}/user-menu/index.js`,
+        [`${modules}/polyfill`]: `${dirModules}/polyfill.js`,
+        [`${modules}/command-line`]: `${dirModules}/command-line.js`,
+    },
+    output: {
+        filename: '[name].js',
+        path: isDev ? distDev : dist,
+        pathinfo: isDev,
+        devtoolModuleFilenameTemplate,
+        publicPath: '/dist/',
+    },
+    module: {
+        rules,
+        noParse,
+    },
+    plugins,
+    performance: {
+        maxEntrypointSize: 2_200_000,
+        // The lazy menu includes Putout; splitting it for caching is a future optimization.
+        maxAssetSize: 1_600_000,
+    },
+};
+
+function devtoolModuleFilenameTemplate(info) {
+    const resource = info.absoluteResourcePath.replace(rootDir + sep, '');
+    return `file://cloudcmd/${resource}`;
+}

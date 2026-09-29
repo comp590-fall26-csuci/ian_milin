@@ -1,0 +1,362 @@
+#!/usr/bin/env node
+
+import process from 'node:process';
+import {promisify} from 'node:util';
+import {tryToCatch} from 'try-to-catch';
+import parse from 'yargs-parser';
+import exit from '../server/exit.js';
+import {createConfig, configPath} from '../server/config.js';
+import * as env from '../server/env.js';
+import prefixer from '../server/prefixer.js';
+import * as validate from '../server/validate.js';
+import Info from '../package.json' with {
+    type: 'json',
+};
+
+process.on('unhandledRejection', exit);
+
+const isUndefined = (a) => typeof a === 'undefined';
+
+const choose = (a, b) => {
+    if (isUndefined(a))
+        return b;
+    
+    return a;
+};
+
+const config = createConfig({
+    configPath,
+});
+
+const maybeRoot = (a) => {
+    if (a === '.')
+        return process.cwd();
+    
+    return a;
+};
+
+const yargsOptions = {
+    configuration: {
+        'strip-aliased': true,
+        'strip-dashed': true,
+    },
+    coerce: {
+        root: maybeRoot,
+    },
+    string: [
+        'name',
+        'port',
+        'password',
+        'username',
+        'config',
+        'editor',
+        'packer',
+        'root',
+        'prefix',
+        'prefix-socket',
+        'terminal-path',
+        'terminal-command',
+        'columns',
+        'menu',
+        'theme',
+        'import-url',
+        'import-token',
+        'export-token',
+        'dropbox-token',
+    ],
+    boolean: [
+        'auth',
+        'repl',
+        'save',
+        'server',
+        'online',
+        'open',
+        'config-dialog',
+        'config-auth',
+        'config-port',
+        'console',
+        'sync-console-path',
+        'contact',
+        'terminal',
+        'terminal-auto-restart',
+        'one-file-panel',
+        'confirm-copy',
+        'confirm-move',
+        'show-config',
+        'show-dot-files',
+        'show-file-name',
+        'vim',
+        'keys-panel',
+        'color',
+        'export',
+        'import',
+        'import-listen',
+        'log',
+        'zip',
+        'dropbox',
+    ],
+    default: {
+        'server': true,
+        'name': choose(env.parse('name'), config('name')),
+        'auth': choose(env.bool('auth'), config('auth')),
+        'port': config('port'),
+        'online': config('online'),
+        'open': choose(env.bool('open'), config('open')),
+        'editor': env.parse('editor') || config('editor'),
+        'menu': env.parse('menu') || config('menu'),
+        'packer': config('packer') || 'tar',
+        'zip': config('zip'),
+        'username': env.parse('username') || config('username'),
+        'root': choose(env.parse('root'), config('root')),
+        'prefix': choose(env.parse('prefix'), config('prefix')),
+        'console': choose(env.bool('console'), config('console')),
+        'contact': choose(env.bool('contact'), config('contact')),
+        'terminal': choose(env.bool('terminal'), config('terminal')),
+        'columns': env.parse('columns') || config('columns') || '',
+        'theme': env.parse('theme') || config('theme') || '',
+        'vim': choose(env.bool('vim'), config('vim')),
+        'log': choose(env.bool('log'), config('log')),
+        
+        'import-url': env.parse('import_url') || config('importUrl'),
+        'import-listen': choose(env.bool('import_listen'), config('importListen')),
+        'import': choose(env.bool('import'), config('import')),
+        'export': choose(env.bool('export'), config('export')),
+        
+        'prefix-socket': config('prefixSocket'),
+        'show-dot-files': choose(env.bool('show_dot_files'), config('showDotFiles')),
+        'show-file-name': choose(env.bool('show_file_name'), config('showFileName')),
+        'sync-console-path': choose(env.bool('sync_console_path'), config('syncConsolePath')),
+        'config-dialog': choose(env.bool('config_dialog'), config('configDialog')),
+        'config-auth': choose(env.bool('config_auth'), config('configAuth')),
+        'config-port': choose(env.bool('config_port'), config('configPort')),
+        'terminal-path': env.parse('terminal_path') || config('terminalPath'),
+        'terminal-command': env.parse('terminal_command') || config('terminalCommand'),
+        'terminal-auto-restart': choose(env.bool('terminal_auto_restart'), config('terminalAutoRestart')),
+        'one-file-panel': choose(env.bool('one_file_panel'), config('oneFilePanel')),
+        'confirm-copy': choose(env.bool('confirm_copy'), config('confirmCopy')),
+        'confirm-move': choose(env.bool('confirm_move'), config('confirmMove')),
+        'keys-panel': env.bool('keys_panel') || config('keysPanel'),
+        'import-token': env.parse('import_token') || config('importToken'),
+        'export-token': env.parse('export_token') || config('exportToken'),
+        
+        'dropbox': config('dropbox'),
+        'dropbox-token': config('dropboxToken') || '',
+    },
+    alias: {
+        version: 'v',
+        help: 'h',
+        password: 'p',
+        online: 'o',
+        username: 'u',
+        save: 's',
+        auth: 'a',
+        config: 'c',
+    },
+};
+
+const {argv} = process;
+const args = parse(argv.slice(2), yargsOptions);
+
+if (args.version)
+    version();
+else if (args.help)
+    help();
+else
+    main();
+
+async function main() {
+    const {validateArgs} = await import('@putout/cli-validate-args');
+    
+    const error = await validateArgs(args, [
+        ...yargsOptions.boolean,
+        ...yargsOptions.string,
+    ]);
+    
+    if (error)
+        return exit(error);
+    
+    if (args.repl)
+        await repl();
+    
+    validate.columns(args.columns);
+    validate.theme(args.theme);
+    
+    port(args.port);
+    
+    config('name', args.name);
+    config('auth', args.auth);
+    config('online', args.online);
+    config('open', args.open);
+    config('username', args.username);
+    config('console', args.console);
+    config('syncConsolePath', args.syncConsolePath);
+    config('showDotFiles', args.showDotFiles);
+    config('showFileName', args.showFileName);
+    config('contact', args.contact);
+    config('terminal', args.terminal);
+    config('terminalPath', args.terminalPath);
+    config('terminalCommand', args.terminalCommand);
+    config('terminalAutoRestart', args.terminalAutoRestart);
+    config('editor', args.editor);
+    config('menu', args.menu);
+    config('prefix', prefixer(args.prefix));
+    config('prefixSocket', prefixer(args.prefixSocket));
+    config('root', args.root || '/');
+    config('vim', args.vim);
+    config('theme', args.theme);
+    config('columns', args.columns);
+    config('log', args.log);
+    config('confirmCopy', args.confirmCopy);
+    config('confirmMove', args.confirmMove);
+    config('oneFilePanel', args.oneFilePanel);
+    config('configDialog', args.configDialog);
+    config('configAuth', args.configAuth);
+    config('configPort', args.configPort);
+    config('keysPanel', args.keysPanel);
+    config('export', args.export);
+    config('exportToken', args.exportToken);
+    config('import', args.import);
+    config('importToken', args.importToken);
+    config('importListen', args.importListen);
+    config('importUrl', args.importUrl);
+    
+    config('dropbox', args.dropbox);
+    config('dropboxToken', args.dropboxToken);
+    
+    await readConfig(args.config);
+    
+    const options = {
+        root: config('root'),
+        editor: config('editor'),
+        packer: config('packer'),
+        prefix: config('prefix'),
+        prefixSocket: config('prefixSocket'),
+        columns: config('columns'),
+        theme: config('theme'),
+        menu: config('menu'),
+    };
+    
+    const password = env.parse('password') || args.password;
+    
+    if (password)
+        config('password', await getPassword(password));
+    
+    validateRoot(options.root, config);
+    
+    if (args.showConfig)
+        await showConfig();
+    
+    const {distributeImport} = await import('../server/distribute/import.js');
+    const importConfig = promisify(distributeImport);
+    
+    await start(options, config);
+    
+    if (args.save)
+        config.write();
+    
+    await tryToCatch(checkUpdate);
+    await importConfig(config);
+}
+
+function validateRoot(root, config) {
+    validate.root(root, config);
+    
+    if (root === '/')
+        return;
+    
+    if (config('log'))
+        console.log(`root: ${root}`);
+}
+
+async function getPassword(password) {
+    const {default: criton} = await import('criton');
+    return criton(password, config('algo'));
+}
+
+function version() {
+    console.log('v' + Info.version);
+}
+
+async function start(options, config) {
+    if (!args.server)
+        return;
+    
+    const {default: server} = await import('../server/server.js');
+    server(options, config);
+}
+
+function port(arg) {
+    const number = parseInt(arg, 10);
+    
+    if (!isNaN(number))
+        return config('port', number);
+    
+    exit('cloudcmd --port: should be a number');
+}
+
+async function showConfig() {
+    const {showConfig} = await import('../server/show-config.js');
+    const data = showConfig(config('*'));
+    
+    console.log(data);
+}
+
+async function readConfig(name) {
+    if (!name)
+        return;
+    
+    const {default: forEachKey} = await import('for-each-key');
+    
+    const data = await import(name, {
+        with: {
+            type: 'json',
+        },
+    });
+    
+    forEachKey(config, data);
+}
+
+async function help() {
+    const {default: bin} = await import('../json/help.json', {
+        with: {
+            type: 'json',
+        },
+    });
+    
+    const {default: forEachKey} = await import('for-each-key');
+    const {default: currify} = await import('currify');
+    
+    const usage = 'Usage: cloudcmd [options]';
+    const url = Info.homepage;
+    const log = currify((a, b, c) => console.log(a, b, c));
+    
+    console.log(usage);
+    console.log('Options:');
+    forEachKey(log('  %s %s'), bin);
+    console.log('\nGeneral help using Cloud Commander: <%s>', url);
+}
+
+async function repl() {
+    console.log('REPL mode enabled (telnet localhost 1337)');
+    await import('../server/repl.js');
+}
+
+async function checkUpdate() {
+    const {default: load} = await import('package-json');
+    const {version} = await load(Info.name, 'latest');
+    
+    await showUpdateInfo(version);
+}
+
+async function showUpdateInfo(version) {
+    if (version === Info.version)
+        return;
+    
+    const {default: chalk} = await import('chalk');
+    
+    const latestVersion = chalk.green.bold(`v${version}`);
+    const latest = `update available: ${latestVersion}`;
+    const current = chalk.dim(`(current: v${Info.version})`);
+    
+    console.log('%s %s', latest, current);
+}
