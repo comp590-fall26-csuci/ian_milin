@@ -1,0 +1,94 @@
+[Event "3m2sEngineContempt100"]
+[Site "-"]
+[Date "2020.05.30"]
+[Round "54"]
+[White "oldFairySF"]
+[Black "latestFairySF"]
+[Result "1-0"]
+[FEN "8/6k1/4pppp/pppp4/4PPPP/PPPP4/2K5/8[FRRSSNNfrrssnn] w - - 0 1"]
+[GameDuration "00:17:13"]
+[GameEndTime "2020-05-30T05:38:52.792 UTC"]
+[GameStartTime "2020-05-30T05:21:39.737 UTC"]
+[PlyCount "355"]
+[SetUp "1"]
+[TimeControl "180+2"]
+[Variant "sittuyin"]
+
+1. N@f3 N@c6 2. F@g3 N@e7 3. S@f2 R@e8 4. R@e1 F@c7 5. N@d2 S@b6 6. R@c1 S@d7
+7. S@e2 R@a8 8. g5 h5 9. gxf6+ Kxf6 10. a4 Kg7 11. Sfe3 Rec8 12. Ne5 Rd8
+13. Ndf3 Fd6 14. Nxc6 Nxc6 15. f5 gxf5 16. exf5 exf5 17. d4 b4 18. Ff4 Rg8
+19. Rg1+ Kf7 20. Ng5+ Ke7 21. Sd3 bxc3 22. Kxc3 Rae8 23. Sd2 Se6 24. Kb2 Kd7
+25. Rge1 Rg7 26. Se3 Sf7 27. Red1 Sf6 28. Nf3 Nb4 29. Rd2 Rg4 30. Kb1 Re7
+31. Kb2 Ke8 32. Rcd1 Sc7 33. Re1 Kf7 34. Fg5 Rg2 35. Kc1 cxd4 36. Nxd4 Rg3
+37. Se2 Fe5 38. Fxf6 Kxf6 39. Nf3 Sd6 40. Kb2 d4 41. Sf2 Rg2 42. Rf1 Sd5
+43. Sd3 Rc7 44. Ne1 Rh2 45. Nc2 Rc3 46. Nxb4 axb4 47. Rg1 Rh3 48. Sc2 Se4
+49. Se1 Rxh4 50. Se2 Rch3 51. Rgd1 Rg3 52. a5 Rgg4 53. a6 Se3 54. Sxe3 dxe3
+55. Re2 Fd4 56. a7 Rg3 57. a8 Rhg4 58. Sd3 Fc3+ 59. Kb1 h4 60. b7=F Rg7
+61. Kc2 Rd7 62. Fc6 Rd6 63. Ra1 Ke5 64. Fb5 h3 65. Fc4 Kf4 66. Rf1+ Kg5
+67. Kb1 Fd2 68. Rh2 Kg4 69. Rhh1 Fc3 70. Rhg1 Rxg1 71. Rxg1+ Kf3 72. Rf1+ Kg4
+73. Kc2 Rd8 74. Kd1 h2 75. Ke2 Fd2 76. Ra1 Kf4 77. Ra7 Fc3 78. Ra1 Fd2
+79. Rh1 Kg3 80. Rb1 Kg4 81. Rf1 Rd7 82. Ra1 Kf4 83. Sc2 Rg7 84. Rf1+ Ke5
+85. Rh1 Rg2+ 86. Kf3 Rf2+ 87. Kg3 f4+ 88. Kh3 Rf3+ 89. Kh4 Rg3 90. Ra1 Rg2
+91. Sd3 f3 92. Ra8 Rg7 93. Re8+ Kd6 94. Sd4 Kc7 95. Sc5 Kd7 96. Re4 Rg1
+97. Fd5 Rc1 98. Rc4 Rc3 99. Rxc3 bxc3 100. Kg3 f2 101. Kxh2 Ke7 102. Kg3 Kf6
+103. Kf4 Kf7 104. Kg5 Fe1 105. Kf5 Kg7 106. Sd6 Fd2 107. Kg5 Kf7 108. Se5 Ke7
+109. Fe6 Fe1 110. Kf5 Fd2 111. Kf4 c2 112. Ke4 Kf8 113. Kf4 Ke7 114. Ke4 Kf8
+115. Kf5 Ke7 116. Kf4 Kf8 117. Sd6 c1 118. Kg5 Kg7 119. Se7 Fc3 120. Sf6+ Kh7
+121. Ff5 Kg8 122. Kf4 Fd2 123. Fg6 f1 124. Ke4 Kh8 125. Kd3 Kg8 126. Ke2 Kh8
+127. Kf3 Kg8 128. Kf4 Kh8 129. Kg5 Kg8 130. Kh6 Kf8 131. Ff7 Fc3 132. Kg5 Fb4
+133. Kf4 Fc3 134. Ke4 e2 135. Kd3 e1 136. Fe6 Fb2 137. b4 Kg8 138. Kc4 Kh7
+139. Sg5 Fa1 140. Kb3 Kg7 141. Ka2 Kf8 142. Sf6 Kg8 143. Kxa1 Kh7 144. Ff7 Kh6
+145. Fg6 Kxg6 146. Se5 Kf5 147. Sd4 Ke4 148. c3=F Kd3 149. Kb1 Ke4 150. Kxc1 Kd3
+151. Kd1 Ke4 152. Kc1 Kd3 153. Kd1 Ke4 154. Ke2 Kf5 155. Kxf1 Kf4 156. Kxe1 Kg5
+157. Kf2 Kf4 158. Se3+ Kg4 159. Kg2 Kh4 160. Sf2 Kg4 161. Sf3+ Kf5 162. Kf2 Kg6
+163. Ke3 Kf5 164. Kd4 Kf6 165. Kd5 Ke7 166. Kc6 Kf8 167. Kd7 Kg8 168. Ke7 Kg7
+169. Sg4 Kg8 170. Fd4 Kg7 171. Sg5 Kg8 172. Fe5 Kg7 173. Ff6+ Kg8 174. Ke8 Kh8
+175. Kf8 Kh7 176. Kf7 Kh8 177. Fg7+ Kh7 178. Sg6#
+
+[Event "9009RegressionTest1"]
+[Site "-"]
+[Date "2020.06.09"]
+[Round "2"]
+[White "CurrentMaster"]
+[Black "PreviousVersion"]
+[Result "1-0"]
+[FEN "5rr1/2kns3/1nsfpppp/pppp4/4PPPP/PPPPFN2/1SKSN3/5RR1[-] w - - 0 1"]
+[GameDuration "00:04:51"]
+[GameEndTime "2020-06-09T00:56:37.719 UTC"]
+[GameStartTime "2020-06-09T00:51:46.033 UTC"]
+[PlyCount "143"]
+[SetUp "1"]
+[TimeControl "90+0.9"]
+[Variant "sittuyin"]
+
+1. exd5 exd5 2. b4 a4 3. bxc5 Fxc5 4. Sbc1 Kb7 5. Kb2 Se6 6. Se1 Nc8 7. Sf2 Nd6
+8. Ng3 Re8 9. Sd2 Sf7 10. Ne1 Re7 11. Nc2 Se6 12. Re1 Rge8 13. h5 g5 14. Sf3 Sf7
+15. Re2 Kc7 16. Rf2 Kb8 17. Fd4 Kc7 18. Rgf1 Kb6 19. Se3 Nb8 20. Se2 Na6
+21. Sd1 Kb7 22. Fxc5 Sxc5 23. Sdd2 Nc7 24. fxg5 hxg5 25. Sd4 Sxd4 26. cxd4 Ne6
+27. Ne2 Nc7 28. Nc3 Nc8 29. Rb1 Rd7 30. Ka2 Ka6 31. Ne2 Nd6 32. Sc3 Rde7
+33. Ng3 Rc8 34. Rb2 Ka7 35. Sb4 Ne6 36. Ne2 Ka8 37. Sa5 Rb7 38. Ne3 Rd8
+39. Rb1 Nc8 40. Sa6 Re7 41. Rxb5 Nc7 42. Sb7+ Ka7 43. Rb4 Nd6 44. Nf5 Nxf5
+45. gxf5 Ne8 46. Sc6 Rc8 47. Sxd5 Rc2+ 48. Rb2 Rxb2+ 49. Kxb2 Ng7 50. Nc3 Nxh5
+51. Sc4 Re3 52. d5 Nf4 53. Rh2 Rh3 54. Rxh3 Nxh3 55. Nb5+ Kb6 56. Nd6 Sg8
+57. d4 g4 58. e6=F g3 59. Sb5+ Ka7 60. Kc3 Ng5 61. Kb4 Kb8 62. Sc6 Nf3
+63. Kc5 Ka7 64. Sb5 Sf7 65. Sb6+ Kb8 66. Fd7 Se8 67. Fxe8 g2 68. Fd7 g1
+69. Nb5 Ne5 70. dxe5 fxe5 71. Fc6 e4 72. Sb7# 
+
+[Event "PyChess casual game"]
+[Site "http://127.0.0.1:8080/YRGsj3xY"]
+[Date "2020.06.15"]
+[Round "-"]
+[White "gbtami"]
+[Black "berado88"]
+[Result "1/2-1/2"]
+[TimeControl "900+0"]
+[WhiteElo "1744?"]
+[BlackElo "1500?"]
+[Variant "Sittuyin"]
+[FEN "8/8/4pppp/pppp4/4PPPP/PPPP4/8/8[KFRRSSNNkfrrssnn] w - - 0 1"]
+[SetUp "1"]
+
+1. R@h1 R@a8 2. R@a1 R@h8 3. K@e1 K@g7 4. N@e3 N@d6 5. N@f3 N@c6 6. S@g3 S@b6
+7. S@h3 S@a6 8. F@f2 F@c7 9. exd5 Rhg8 10. dxc6 Rh8 11. d4 Kh7 12. d5 Kg7
+13. Nc2 Kf7 14. Fe3 Kg7 15. Fd4 Kh7 16. Fxc5 Sxc5 17. Ra2 Nb7 18. cxb7 Kg7
+19. a4 bxa4 20. d5c6=F 1/2-1/2

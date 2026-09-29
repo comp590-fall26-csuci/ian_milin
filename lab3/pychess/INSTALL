@@ -1,0 +1,133 @@
+PyChess does not have to be compiled/installed to run.
+
+To run execute the following in this directory:
+$ ./pychess
+
+To install system wide run following as root
+# python3 setup.py install
+
+To see other install options/formats:
+$ python3 setup.py --help-commands
+
+To run the pychess engine in text based mode
+$ PYTHONPATH=lib/ python3 lib/pychess/Players/PyChess.py
+
+To run unit tests for pychess:
+$ uv run python -m unittest discover -s testing -p "*.py" -v
+
+--------------------------------------
+Developers should install the development tools with uv:
+$ uv sync --group dev
+$ uv run --only-group dev ruff check .
+$ uv run --only-group dev ruff format .
+$ uv run --only-group dev pyright
+
+-------------------------------
+PyChess learning modules need stockfish to be installed
+
+-------------------------------
+Dependencies for Ubuntu/Debian:
+stockfish
+adwaita-icon-theme
+python3
+python3-cairo
+python3-gi
+python3-gi-cairo
+python3-sqlalchemy
+python3-pexpect
+python3-psutil
+python3-websockets
+gobject-introspection
+gir1.2-glib-2.0
+gir1.2-gtk-3.0
+gir1.2-pango-1.0
+gir1.2-rsvg-2.0
+gir1.2-gdkpixbuf-2.0
+gir1.2-gtksource-4
+gir1.2-gstreamer-1.0
+gir1.2-gst-plugins-base-1.0
+(If you have no sound in pychess try to install gstreamer1.0-pulseaudio)
+
+(Creating .rpm packages needs rpm, creating .deb needs python3-stdeb)
+
+--------------------------------------------
+Dependencies for CentOS/RHEL7 and Fedora 20:
+stockfish
+python3
+python3-gobject
+python3-cairo
+gobject-introspection
+glib2
+gtk3
+pango
+gdk-pixbuf2
+gtksourceview4
+gstreamer1
+gstreamer1-plugins-base
+python3-sqlalchemy
+python3-pexpect
+python3-psutil
+python3-websockets
+
+----------------------
+Dependencies for Arch:
+stockfish
+python
+python-gobject
+python-cairo
+python-sqlalchemy
+python-pexpect
+python-psutil
+python-websockets
+gobject-introspection
+glib2
+gtk3
+pango
+gdk-pixbuf2
+gtksourceview4
+gstreamer
+gst-plugins-base
+
+-------------------------
+Dependencies for 64bit Python 3.8.x on Windows:
+Go to https://msys2.github.io/ and download the x86_64 installer
+In C:\msys64\mingw64.exe terminal run:
+
+pacman -S mingw-w64-x86_64-python mingw-w64-x86_64-python-cairo mingw-w64-x86_64-gobject-introspection mingw-w64-x86_64-libffi
+pacman -S mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python-gobject mingw-w64-x86_64-gtksourceview4 mingw-w64-x86_64-freetype
+pacman -S mingw-w64-x86_64-python-sqlalchemy mingw-w64-x86_64-python-pexpect mingw-w64-x86_64-python-psutil
+pacman -S --needed base-devel mingw-w64-x86_64-toolchain
+pacman -S mingw-w64-x86_64-python-pip git
+pip install websockets
+
+In msys64 console window run:
+python ./pychess
+
+To create .msi installer:
+pacman -S mingw-w64-x86_64-python-cx_Freeze
+# You may need this on licalized Windows unless cx_Freeze will fail
+export LC_ALL=C
+python setup.py bdist_msi
+
+-------------------------
+Dependencies for macOS:
+
+Tested on macOS 14 (Sonoma) and later, Apple Silicon (Intel Macs use the same
+steps, with /usr/local wherever Apple Silicon uses /opt/homebrew).
+See INSTALL_MACOS for the full, step-by-step guide.
+
+    brew install python gtk+3 pygobject3 gtksourceview4 librsvg \
+                 gstreamer adwaita-icon-theme gettext stockfish
+
+Homebrew's Python is externally managed (PEP 668), so install into a virtual
+environment that can still see Homebrew's PyGObject:
+
+    python3 -m venv --system-site-packages .venv
+    source .venv/bin/activate
+    python3 -m pip install -r requirements.txt
+
+Generate eco.db and the piece-theme previews before running or installing; both
+need PYTHONPATH=lib because they import pychess from the source tree:
+
+    PYTHONPATH=lib python3 pgn2ecodb.py
+    PYTHONPATH=lib python3 create_theme_preview.py

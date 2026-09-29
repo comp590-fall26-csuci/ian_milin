@@ -1,0 +1,87 @@
+# Copyright (C) 2023 Sebastian Pipping <sebastian@pipping.org>
+# Licensed under GPL v3 or later
+
+name: Run the test suite
+
+# Drop permissions to minimum for security
+permissions:
+  contents: read
+
+on:
+  pull_request:
+  push:
+  schedule:
+    - cron: '0 2 * * 5'  # Every Friday at 2am
+
+jobs:
+  run-tests:
+    name: Run the test suite
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.14"]  # no particular need for in-between versions
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        set -x
+        sudo apt-get update
+        sudo timeout 10m apt-get install --no-install-recommends --yes -V \
+            gettext \
+            gir1.2-gdkpixbuf-2.0 \
+            gir1.2-glib-2.0 \
+            gir1.2-gstreamer-1.0 \
+            gir1.2-gtk-3.0 \
+            gir1.2-gtksource-4 \
+            gir1.2-pango-1.0 \
+            gir1.2-rsvg-2.0 \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good \
+            libcairo2-dev \
+            libgdk-pixbuf-2.0-dev \
+            libgirepository-2.0-dev \
+            librsvg2-common \
+            stockfish \
+            xvfb
+
+    - name: Install from sources
+      run: |
+        set -x
+        python3 --version
+        python3 -m venv venv
+        source venv/bin/activate
+
+        pip3 install -U pip setuptools wheel
+        pip3 install -r requirements.txt
+        diff -u0 <(sed -e 's,#.*,,' -e '/^$/d' < requirements.txt | sort -f) <(pip3 freeze | sed -e '/^setuptools==/d' -e '/^wheel==/d' | sort -f)  # enforces complete pinning
+
+        time PYTHONPATH=lib python3 pgn2ecodb.py
+        time PYTHONPATH=lib python3 create_theme_preview.py
+
+        python3 setup.py --version  # workaround for pip >=25.3, creates file "learn/puzzles/mate_in_4.sqlite"
+
+        pip3 install -e .
+
+        pychess --help  # smoke test
+
+    - name: Run the test suite (with virtual X11 server)
+      run: |
+        set -x
+        source venv/bin/activate
+
+        export DISPLAY=:1
+        Xvfb "${DISPLAY}" &
+        xvfb_pid=$!
+
+        PYCHESS_UNITTEST=true PYTHONPATH=lib python3 -m unittest discover -s testing -p "*.py" -v || touch FAILED
+
+        kill -s SIGTERM "${xvfb_pid}"
+        [ -f FAILED ] && exit 1
+        exit 0
