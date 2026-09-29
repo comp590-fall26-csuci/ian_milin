@@ -1,0 +1,6 @@
+PyGObject
+SQLAlchemy
+pexpect
+psutil
+pycairo
+websockets
