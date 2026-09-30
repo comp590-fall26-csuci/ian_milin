@@ -14,7 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: make
-      run: cd lab3 | pwd | make
+      run: | 
+        cd lab3 
+        make
 
   run:
 
@@ -23,7 +25,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: make run
-      run: cd lab3 | make run
+      run: | 
+        cd lab3
+        make run
 
   #verify:
 
