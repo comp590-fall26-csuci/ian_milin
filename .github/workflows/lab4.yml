@@ -1,0 +1,35 @@
+name: lab4
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: make
+      run: lab3/make
+
+  run:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: make run
+      run: lab3/make run
+
+  #verify:
+
+ #   runs-on: ubuntu-latest
+
+  #  steps:
+   # - uses: actions/checkout@v4
+    #- name: verify
+     # run: 
