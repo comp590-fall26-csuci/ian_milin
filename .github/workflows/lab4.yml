@@ -25,4 +25,4 @@ jobs:
   
     - name: verify
       run: 
-        awk 'NR==2 && $NF!="55" {exit 1} NR==3 && $NF!="1.618034" {exit 1}' lab3/output.txt
+        awk 'NR==2 && $NF!="55" {exit 1} NR==3 && $NF!="1.618034" {exit 1} END {if (NR<3) exit 1}' lab3/output.txt
