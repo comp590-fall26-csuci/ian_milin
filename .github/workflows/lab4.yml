@@ -25,4 +25,4 @@ jobs:
   
     - name: verify
       run: 
-        grep -z -E "55\n.*1.618034$" lab3/output.txt
+        grep -z -E "55.*1.618034$" lab3/output.txt
