@@ -25,4 +25,4 @@ jobs:
   
     - name: verify
       run: 
-        grep -z -E "55.*" lab3/output.txt
+        grep -z -E "55\n.*" lab3/output.txt
