@@ -18,22 +18,11 @@ jobs:
         cd lab3 
         make
 
-  run:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
     - name: make run
       run: | 
         cd lab3
-        make run
-
-  #verify:
-
- #   runs-on: ubuntu-latest
-
-  #  steps:
-   # - uses: actions/checkout@v4
-    #- name: verify
-     # run: 
+        make run | tee output.txt
+  
+    - name: verify
+      run: 
+        grep -z -E "55\n.*1.618034$" output.txt
