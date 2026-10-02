@@ -24,6 +24,5 @@ jobs:
         make run | tee output.txt
   
     - name: verify
-      run: |
-        awk '{print NR, $NF}' lab3/output.txt
-        awk 'NR==1 && $NF!="55" {exit 1} NR==2 && $NF!="1.618034" {exit 1}' lab3/output.txt
+      run: 
+        awk 'NR==2 && $NF!="55" {exit 1} NR==3 && $NF!="1.618034" {exit 1}' lab3/output.txt
