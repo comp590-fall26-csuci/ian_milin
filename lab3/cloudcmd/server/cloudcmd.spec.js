@@ -1,0 +1,276 @@
+import path, {dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {serveOnce} from 'serve-once';
+import {test, stub} from 'supertape';
+import cloudcmd, {
+    _isDev,
+    _replaceDist,
+    createConfigManager,
+    _getPrefix,
+    _initAuth,
+    _getIndexPath,
+} from '#server/cloudcmd';
+import {connect} from '../test/before.js';
+
+const noop = () => {};
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const {request} = serveOnce(cloudcmd, {
+    config: {
+        auth: false,
+        dropbox: false,
+    },
+});
+
+test('cloudcmd: defaults: config', (t) => {
+    const configManager = createConfigManager();
+    
+    configManager('configDialog', false);
+    
+    cloudcmd({
+        configManager,
+    });
+    
+    t.notOk(configManager('configDialog'), 'should not override config with defaults');
+    t.end();
+});
+
+test('cloudcmd: defaults: console', (t) => {
+    const configManager = createConfigManager();
+    configManager('console', false);
+    
+    cloudcmd({
+        configManager,
+    });
+    
+    t.notOk(configManager('console'), 'should not override config with defaults');
+    t.end();
+});
+
+test('cloudcmd: getPrefix', (t) => {
+    const value = 'hello';
+    const result = _getPrefix(value);
+    
+    t.equal(result, value);
+    t.end();
+});
+
+test('cloudcmd: getPrefix: function', (t) => {
+    const value = 'hello';
+    const fn = () => value;
+    const result = _getPrefix(fn);
+    
+    t.equal(result, value);
+    t.end();
+});
+
+test('cloudcmd: getPrefix: function: empty', (t) => {
+    const value = null;
+    const fn = () => value;
+    const result = _getPrefix(fn);
+    
+    t.equal(result, '');
+    t.end();
+});
+
+test('cloudcmd: replaceDist', (t) => {
+    const currentIsDev = _isDev();
+    
+    _isDev(true);
+    const url = '/dist/hello';
+    const result = _replaceDist(url);
+    const expected = '/dist-dev/hello';
+    
+    _isDev(currentIsDev);
+    
+    t.equal(result, expected);
+    t.end();
+});
+
+test('cloudcmd: replaceDist: !isDev', (t) => {
+    const url = '/dist/hello';
+    
+    const currentIsDev = _isDev();
+    _isDev(false);
+    const result = _replaceDist(url);
+    
+    _isDev(currentIsDev);
+    
+    t.equal(result, url);
+    t.end();
+});
+
+test('cloudcmd: auth: reject', (t) => {
+    const accept = stub();
+    const reject = stub();
+    
+    const config = createConfigManager();
+    
+    const username = 'root';
+    const password = 'toor';
+    
+    config('auth', true);
+    config('username', username);
+    config('password', password);
+    
+    _initAuth(config, accept, reject, username, 'abc');
+    
+    t.ok(reject.called, 'should reject');
+    t.end();
+});
+
+test('cloudcmd: auth: accept', (t) => {
+    const accept = stub();
+    const reject = stub();
+    
+    const username = 'root';
+    const password = 'toor';
+    const auth = true;
+    
+    const config = createConfigManager();
+    config('username', username);
+    config('password', password);
+    config('auth', auth);
+    
+    _initAuth(config, accept, reject, username, password);
+    
+    t.ok(accept.called, 'should accept');
+    t.end();
+});
+
+test('cloudcmd: auth: accept: no auth', (t) => {
+    const accept = stub();
+    const reject = stub();
+    
+    const auth = false;
+    const username = 'root';
+    const password = 'toor';
+    
+    const config = createConfigManager();
+    config('username', username);
+    config('password', password);
+    config('auth', auth);
+    
+    _initAuth(config, accept, reject, username, password);
+    
+    t.ok(accept.called, 'should accept');
+    t.end();
+});
+
+test('cloudcmd: getIndexPath: production', (t) => {
+    const isDev = false;
+    
+    const result = _getIndexPath(isDev);
+    const expected = path.join(__dirname, '..', 'dist', 'index.html');
+    
+    t.equal(result, expected);
+    t.end();
+});
+
+test('cloudcmd: getIndexPath: development', (t) => {
+    const isDev = true;
+    const result = _getIndexPath(isDev);
+    const expected = path.join(__dirname, '..', 'dist-dev', 'index.html');
+    
+    t.equal(result, expected);
+    t.end();
+});
+
+test('cloudcmd: sw', async (t) => {
+    const {status} = await request.get('/sw.mjs');
+    
+    t.equal(status, 200, 'should return sw');
+    t.end();
+});
+
+test('cloudcmd: no params', (t) => {
+    const middle = cloudcmd();
+    
+    t.ok(Array.isArray(middle), 'should return middleware list when no params passed');
+    t.end();
+});
+
+test('cloudcmd: listen: terminal', async (t) => {
+    const {done} = await connect({
+        config: {
+            terminal: true,
+        },
+    });
+    
+    await done();
+    
+    t.pass('should listen with terminal enabled');
+    t.end();
+});
+
+test('cloudcmd: middle: dropbox', async (t) => {
+    const {port, done} = await connect({
+        config: {
+            dropbox: true,
+            dropboxToken: 'hello',
+        },
+    });
+    
+    const response = await fetch(`http://localhost:${port}/api/v1/dropbox/nonexistent`);
+    
+    await done();
+    
+    t.ok(response.status, 'should mount dropbox route');
+    t.end();
+});
+
+test('cloudcmd: logout', async (t) => {
+    const {status} = await request.get('/logout');
+    
+    t.equal(status, 401, 'should return 401 for /logout');
+    t.end();
+});
+
+test('cloudcmd: modules', (t) => {
+    const middle = cloudcmd({
+        modules: {
+            hello: noop,
+        },
+    });
+    
+    t.ok(Array.isArray(middle), 'should return middleware list with modules');
+    t.end();
+});
+
+test('cloudcmd: setUrl: cloudcmd.js', async (t) => {
+    const {status} = await request.get('/cloudcmd.js');
+    
+    t.equal(status, 200, 'should serve cloudcmd.js');
+    t.end();
+});
+
+test('cloudcmd: prefix: serve cloudcmd.js', async (t) => {
+    const {request} = serveOnce(cloudcmd, {
+        config: {
+            auth: false,
+            prefix: '/cmd',
+        },
+    });
+    
+    const {status} = await request.get('/cmd/cloudcmd.js');
+    
+    t.equal(status, 200, 'should serve cloudcmd.js under prefix');
+    t.end();
+});
+
+test('cloudcmd: prefix: serve edward.js', async (t) => {
+    const {request} = serveOnce(cloudcmd, {
+        config: {
+            auth: false,
+            prefix: '/cmd',
+            editor: 'edward',
+        },
+    });
+    
+    const {status} = await request.get('/cmd/edward/edward.js');
+    
+    t.equal(status, 200, 'should serve edward.js under prefix');
+    t.end();
+});
