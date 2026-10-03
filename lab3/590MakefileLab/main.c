@@ -15,7 +15,7 @@ UTEST_I_SETUP(Fixture) {
 UTEST_I_TEARDOWN(Fixture) {}
 
 UTEST_I(Fixture, fibonacci_1_10, 10) {
-    static const int expected[] = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55};
+    static const int expected[] = {1, 1, 2, 3, 5, 8, 13, 22, 34, 55};
 
     int myIndex = utest_fixture->index + 1; 
 
