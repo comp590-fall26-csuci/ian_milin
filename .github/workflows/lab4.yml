@@ -21,10 +21,14 @@ jobs:
         make
 
     - name: make run
-      run: | 
+      run: |
         cd lab3
         make run | tee output.txt
   
     - name: verify
       run: 
         awk 'NR==2 && $NF!="55" {exit 1} NR==3 && $NF!="1.618034" {exit 1} END {if (NR<3) exit 1}' lab3/output.txt
+
+    - name: verify unit tests
+      run: |
+        ! grep -F '[  FAILED  ] Fixture.fibonacci_1_10/' lab3/output.txt
