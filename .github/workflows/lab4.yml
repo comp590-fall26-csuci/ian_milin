@@ -13,9 +13,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: make
       run: | 
         cd lab3 
+        make clean
         make
 
     - name: make run
