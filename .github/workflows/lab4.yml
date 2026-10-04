@@ -29,6 +29,10 @@ jobs:
       run: 
         awk 'NR==2 && $NF!="55" {exit 1} NR==3 && $NF!="1.618034" {exit 1} END {if (NR<3) exit 1}' lab3/output.txt
 
+    - name: verify fibonacci_1_10 run
+      run:
+        grep -qF '[ RUN      ] Fixture.f_1_10/' lab3/output.txt
+
     - name: verify unit tests
       run: |
         ! grep -F '[  FAILED  ] Fixture.fibonacci_1_10/' lab3/output.txt
