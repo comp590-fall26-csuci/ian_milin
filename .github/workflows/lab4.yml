@@ -31,7 +31,7 @@ jobs:
 
     - name: verify fibonacci_1_10 run
       run:
-        grep -qF '[ RUN      ] Fixture.f_1_10/' lab3/output.txt
+        grep -qF '[ RUN      ] Fixture.fibonacci_1_10/' lab3/output.txt
 
     - name: verify unit tests
       run: |
