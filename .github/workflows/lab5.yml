@@ -1,0 +1,56 @@
+name: lab5
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  fuzz:
+
+    runs-on: ubuntu-latest
+
+    container:
+      image: aflplusplus/aflplusplus:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare input corpus
+        run: |
+          cd lab5
+          mkdir -p afl_in afl_out
+          # AFL++ requires at least one valid input file to start mutating
+          echo "initial test data" > afl_in/testcase.txt
+
+      - name: Compile target
+        run: |
+          # afl-clang-fast instrument the binary for the fuzzer.
+          cd lab5
+          afl-clang-fast -g -O2 dvcp.c -o dvcp
+
+      - name: Run AFL++ for 3 minutes
+        env:
+          # Bypasses system configuration checks that fail on standard CI runners
+          AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES: 1
+          AFL_SKIP_CPUFREQ: 1
+        run: |
+          # -V 180 terminates the fuzzer after exactly 180 seconds
+          # @@ passes the fuzzed input as a file argument. 
+          # (Remove @@ if reading directly from stdin)
+          cd lab5
+          afl-fuzz -i afl_in -o afl_out -V 180 -- ./dvcp @@
+
+      - name: Check for crashes
+        if: always()
+        run: |
+          # AFL++ writes crashes to the 'default/crashes' subdirectory
+          cd lab5
+          CRASHES=$(ls afl_out/default/crashes/ | grep -v README || true)
+          if [ ! -z "$CRASHES" ]; then
+            echo "Fuzzer found crashes!"
+            exit 1
+          else
+            echo "No crashes found in the 3-minute run."
+          fi
