@@ -21,10 +21,37 @@ jobs:
         make
 
     - name: make run
-      run: | 
+      run: |
         cd lab3
         make run | tee output.txt
   
     - name: verify
       run: 
         awk 'NR==2 && $NF!="55" {exit 1} NR==3 && $NF!="1.618034" {exit 1} END {if (NR<3) exit 1}' lab3/output.txt
+
+    - name: verify fibonacci_1_10 run
+      run:
+        grep -qF '[ RUN      ] Fixture.fibonacci_1_10/' lab3/output.txt
+
+    - name: verify unit tests
+      run: |
+        ! grep -F '[  FAILED  ] Fixture.fibonacci_1_10/' lab3/output.txt
+
+  semgrep:
+    # User definable name of this GitHub Actions job.
+    name: semgrep-oss/scan
+    # If you are self-hosting, change the following `runs-on` value: 
+    runs-on: ubuntu-latest
+
+    container:
+      # A Docker image with Semgrep installed. Do not change this.
+      image: semgrep/semgrep
+
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.actor != 'dependabot[bot]')
+
+    steps:
+      # Fetch project source with GitHub Actions Checkout. Use either v3 or v4.
+      - uses: actions/checkout@v4
+      # Run the "semgrep scan" command on the command line of the docker image.
+      - run: semgrep scan --config auto
