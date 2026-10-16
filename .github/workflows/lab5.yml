@@ -54,11 +54,16 @@ jobs:
           else
             echo "No crashes found in the 3-minute run."
           fi
-          
+
+      - name: Archive fuzzer output
+        if: always()
+        run: |
+          # Compresses the directory into a single tar.gz file
+          tar -czvf afl-results.tar.gz lab5/afl_out/
+
       - name: Upload Fuzzer Output
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: afl-fuzz-results
-          # Upload the output directory so you can download and inspect any crashes
-          path: lab5/afl_out/
+          path: afl-results.tar.gz
