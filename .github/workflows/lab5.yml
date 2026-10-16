@@ -61,4 +61,4 @@ jobs:
         with:
           name: afl-fuzz-results
           # Upload the output directory so you can download and inspect any crashes
-          path: afl_out/
+          path: lab5/afl_out/
