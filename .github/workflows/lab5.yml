@@ -54,3 +54,11 @@ jobs:
           else
             echo "No crashes found in the 3-minute run."
           fi
+          
+      - name: Upload Fuzzer Output
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: afl-fuzz-results
+          # Upload the output directory so you can download and inspect any crashes
+          path: afl_out/
