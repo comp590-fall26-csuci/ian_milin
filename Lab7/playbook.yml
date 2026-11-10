@@ -1,0 +1,175 @@
+- name: Setup Gitea
+  hosts: targets
+  become: true
+  vars:
+    gitea_path: /usr/local/bin/gitea
+    gitea_version: 28.3.0
+    gitea_checksum: sha256:24d146e8f5c986b86e5a3311e3ec349ded35202cba056952ab5b585511ace82d
+    gitea_home: /var/lib/gitea
+
+    runner_path: /usr/local/bin/gitea-runner
+    runner_version: 5.4.1
+    runner_checksum: sha256:3ba021458e7a7ea4e8b685451caaea77de0e1aeaca1448d2501c46ec270eae1e
+    runner_home: /var/lib/gitea-runner
+
+  pre_tasks:
+    - name: Update apt cache if needed.
+      apt: update_cache=yes cache_valid_time=3600
+
+  tasks:
+    - name: Install Gitea dependencies.
+      apt:
+        state: present
+        name:
+          - git
+          - sqlite3
+    
+    - name: Ensure git user exists.
+      user:
+        name: git
+        system: true
+        comment: 'Git Version Control'
+        home: '/home/git'
+        state: present
+
+    - name: Ensure required directory structure exists.
+      file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: 0750
+      loop:
+        - { path: '{{ gitea_home }}', owner: 'git', group: 'git' }
+        - { path: '{{ gitea_home }}/custom', owner: 'git', group: 'git' }
+        - { path: '{{ gitea_home }}/data', owner: 'git', group: 'git' }
+        - { path: '{{ gitea_home }}/log', owner: 'git', group: 'git' }
+
+    - name: Ensure app.ini exists.
+      ini_file:
+        path: /etc/gitea/app.ini
+        section: "{{ item.section }}"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
+        owner: git
+        group: git
+        mode: 0640
+      loop:
+        - { section: 'database', option: 'DB_TYPE', value: 'sqlite3' }
+        - { section: 'database', option: 'PATH', value: '/var/lib/gitea/data/gitea.db' }
+        - { section: 'actions', option: 'ENABLED', value: 'true' }
+      notify: restart gitea
+
+    - name: Create service file to start Gitea automatically
+      copy:
+        dest: /etc/systemd/system/gitea.service
+        content: |
+          [Unit]
+          Description=Gitea (Git with a cup of tea)
+          After=syslog.target network.target
+          [Service]
+          RestartSec=2s
+          Type=simple
+          User=git
+          Group=git
+          WorkingDirectory={{ gitea_home }}
+          ExecStart={{ gitea_path }} web -c /etc/gitea/app.ini
+          Restart=always
+          Environment=USER=git HOME=/home/git GITEA_WORK_DIR=/var/lib/gitea
+          [Install]
+          WantedBy=multi-user.target
+        mode: 0644
+      notify: reload systemd
+
+    - name: Download Gitea binary.
+      get_url:
+        url: "https://dl.gitea.com/gitea/{{ gitea_version }}/gitea-{{ gitea_version }}-linux-arm64"
+        dest: "{{ gitea_path }}"
+        mode: 0755
+        checksum: "{{ gitea_checksum }}"
+
+    - name: Start and enable Gitea systemd Service.
+      systemd_service:
+        name: gitea
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Wait for Gitea to finish starting.
+      wait_for:
+        port: 3000
+        delay: 5
+        timeout: 60
+
+    - name: Download Gitea Runner binary.
+      get_url:
+        url: "https://dl.gitea.com/gitea-runner/{{ runner_version }}/gitea-runner-{{ runner_version }}-linux-arm64"
+        dest: "{{ runner_path }}"
+        mode: 0755
+        checksum: "{{ runner_checksum }}"
+
+    - name: Create gitea runner directory.
+      file:
+        path: "{{ runner_home }}"
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Check if Gitea Runner is already registered.
+      stat:
+        path: "{{ runner_home }}/.runner"
+      register: runner_reg
+
+    - name: Generate Gitea Runner token.
+      command: >
+        sudo -u git GITEA_WORK_DIR={{ gitea_home }} {{ gitea_path }} --config /etc/gitea/app.ini actions generate-runner-token
+      register: runner_token_output
+      changed_when: false
+      when: not runner_reg.stat.exists
+
+    - name: Register Gitea Runner to run on the host OS
+      command: >
+        gitea-runner register
+        --no-interactive
+        --instance http://127.0.0.1:3000
+        --token {{ runner_token_output.stdout }}
+        --labels "ubuntu-latest:host,debian-latest:host,local:host"
+      args:
+        chdir: "{{ runner_home }}"
+      when: not runner_reg.stat.exists
+
+    - name: Create service file for Gitea Runner
+      copy:
+        dest: /etc/systemd/system/gitea-runner.service
+        content: |
+          [Unit]
+          Description=Gitea Actions runner
+          After=gitea.service
+          [Service]
+          ExecStart={{ runner_path }} daemon
+          WorkingDirectory={{ runner_home }}
+          Environment="HOME=/root"
+          Restart=always
+          RestartSec=5s
+          [Install]
+          WantedBy=multi-user.target
+        mode: 0644
+      notify: reload systemd
+
+    - name: Start and enable Gitea Runner Service
+      systemd:
+        name: gitea-runner
+        state: started
+        enabled: true
+        daemon_reload: true
+
+  handlers:
+    - name: restart gitea
+      systemd:
+        name: gitea
+        state: restarted
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: true
