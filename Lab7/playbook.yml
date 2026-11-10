@@ -44,6 +44,7 @@
         - { path: '{{ gitea_home }}/custom', owner: 'git', group: 'git' }
         - { path: '{{ gitea_home }}/data', owner: 'git', group: 'git' }
         - { path: '{{ gitea_home }}/log', owner: 'git', group: 'git' }
+        - { path: '/etc/gitea', owner: 'root', group: 'git' }
 
     - name: Ensure app.ini exists.
       ini_file:
