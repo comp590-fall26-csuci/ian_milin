@@ -1,0 +1,272 @@
+html {
+    height: 94%;
+}
+
+body {
+    width: 100%;
+    height: 95%;
+    overflow: hidden;
+    background-color: var(--background);
+}
+
+body,
+pre,
+code {
+    font-family: 'Droid Sans Mono', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 16px;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+.none {
+    display: none;
+}
+
+.fm,
+.keyspanel {
+    cursor: default;
+    -webkit-tap-highlight-color: rgb(0 0 0 / 0%);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.links {
+    -webkit-user-select: initial;
+    -moz-user-select: initial;
+    -ms-user-select: initial;
+    -o-user-select: initial;
+    user-select: text;
+    color: var(--column-color);
+}
+
+.panel,
+.cmd-button {
+    border: 1px solid;
+    border-color: var(--border-color);
+}
+
+.icon {
+    margin-left: 0.5%;
+    cursor: default;
+}
+
+.icon:hover {
+    cursor: default;
+}
+
+.path-icon {
+    position: relative;
+    color: var(--icon-color);
+}
+
+.path-icon:active {
+    top: 1px;
+}
+
+.path-icon:hover {
+    color: #06e;
+    cursor: pointer;
+}
+
+.error::before {
+    font-family: 'Fontello';
+    font-size: 14px;
+    color: rgb(222 41 41);
+    cursor: default;
+    content: '\e800';
+}
+
+.loading {
+    position: relative;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+.loading::after {
+    position: relative;
+    bottom: 5px;
+    left: 16px;
+    font-size: 10px;
+    color: var(--link-color);
+    content: attr(data-progress);
+}
+
+.cmd-button {
+    width: 5%;
+    height: 30px;
+    margin: 20px 2px 0;
+    color: var(--icon-color);
+    background-color: var(--button-background);
+    transition: ease 0.1s;
+}
+
+.cmd-button:hover {
+    border: 1px solid;
+    transition: ease 0.5s;
+}
+
+.cmd-button:active {
+    color: white;
+    background-color: var(--link-color);
+    transition: ease 0.1s;
+}
+
+.cmd-button:focus {
+    outline: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover,
+a:active {
+    color: #06e;
+    text-decoration: none;
+}
+
+.links a {
+    color: red;
+}
+
+.mini-icon {
+    position: relative;
+    top: 2px;
+    /* отступ перед картинкой
+     * для нормального отображения
+     * рамки
+     */
+    left: -5px;
+    float: left;
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+}
+
+.fm {
+    width: 98%;
+    height: 90%;
+    margin: 26px auto 0;
+}
+
+.fm-header {
+    font-weight: bold;
+    color: var(--column-color);
+}
+
+.panel-left {
+    float: left;
+}
+
+.current-file {
+    box-shadow: 0 0 0 1px var(--border-color) inset;
+}
+
+.cut-file {
+    opacity: 0.7;
+}
+
+.name {
+    float: left;
+    width: 26%;
+}
+
+.name a {
+    color: var(--link-color);
+}
+
+.name a:hover {
+    cursor: default;
+}
+
+.selected-file,
+.selected-file > span,
+.selected-file .name > a {
+    color: rgb(254 159 224);
+}
+
+.panel-right {
+    float: right;
+}
+
+.panel {
+    width: 46%;
+    height: 98%;
+    padding: 1%;
+}
+
+.panel-single {
+    width: 98%;
+}
+
+.selected-panel {
+    border-color: rgb(254 159 224 / 40%);
+}
+
+.keyspanel {
+    text-align: center;
+}
+
+.size {
+    float: left;
+    width: 12%;
+    margin-right: 27px;
+    text-align: right;
+    color: var(--column-color);
+}
+
+.date {
+    float: left;
+    width: 19%;
+    color: var(--column-color);
+}
+
+.time {
+    color: var(--column-color);
+    display: none;
+}
+
+.owner {
+    display: inline-block;
+    width: 12%;
+    
+    /* when inline-block
+     * vertical align should be
+     * set top to prevent additional
+     * spaces behind lines
+     */
+    vertical-align: top;
+    color: var(--column-color);
+}
+
+.mode {
+    float: right;
+    width: 22%;
+    color: var(--column-color);
+}
+
+.reduce-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.files {
+    height: 95%;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    list-style-type: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.files li {
+    overflow: hidden;
+}
