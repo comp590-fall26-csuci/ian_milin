@@ -1,0 +1,26 @@
+./590MakefileLab/build/fibonacci
+The 10th Fibonacci number is 55
+The theoretical Golden Ratio is 1.618034
+[==========] Running 10 test cases.
+[ RUN      ] Fixture.fibonacci_1_10/0
+[       OK ] Fixture.fibonacci_1_10/0 (459ns)
+[ RUN      ] Fixture.fibonacci_1_10/1
+[       OK ] Fixture.fibonacci_1_10/1 (84ns)
+[ RUN      ] Fixture.fibonacci_1_10/2
+[       OK ] Fixture.fibonacci_1_10/2 (83ns)
+[ RUN      ] Fixture.fibonacci_1_10/3
+[       OK ] Fixture.fibonacci_1_10/3 (83ns)
+[ RUN      ] Fixture.fibonacci_1_10/4
+[       OK ] Fixture.fibonacci_1_10/4 (83ns)
+[ RUN      ] Fixture.fibonacci_1_10/5
+[       OK ] Fixture.fibonacci_1_10/5 (125ns)
+[ RUN      ] Fixture.fibonacci_1_10/6
+[       OK ] Fixture.fibonacci_1_10/6 (166ns)
+[ RUN      ] Fixture.fibonacci_1_10/7
+[       OK ] Fixture.fibonacci_1_10/7 (167ns)
+[ RUN      ] Fixture.fibonacci_1_10/8
+[       OK ] Fixture.fibonacci_1_10/8 (292ns)
+[ RUN      ] Fixture.fibonacci_1_10/9
+[       OK ] Fixture.fibonacci_1_10/9 (375ns)
+[==========] 10 test cases ran.
+[  PASSED  ] 10 tests.

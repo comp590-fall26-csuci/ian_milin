@@ -1,0 +1,63 @@
+{
+    "plugins": ["cloudcmd"],
+    "ignore": [
+        "*.md",
+        "app.json",
+        "fontello.json",
+        "html",
+        "fixture*"
+    ],
+    "rules": {
+        "package-json/add-type": "off"
+    },
+    "match": {
+        "test-e2e": {
+            "tape": "on"
+        },
+        ".filesystem.json": {
+            "nodejs/rename-file-cjs-to-js": "off"
+        },
+        "base64": {
+            "types/convert-typeof-to-is-type": "off"
+        },
+        "*.md": {
+            "nodejs/convert-commonjs-to-esm": "on"
+        },
+        ".webpack": {
+            "webpack": "on"
+        },
+        "server": {
+            "nodejs/remove-process-exit": "on"
+        },
+        "server/{server,exit}.js": {
+            "nodejs/remove-process-exit": "off"
+        },
+        "server/{server,exit,terminal,distribute/log}.{js,mjs}": {
+            "remove-console": "off"
+        },
+        "client/{client,cloudcmd,load-module}.{js,mjs}": {
+            "remove-console": "off"
+        },
+        "client": {
+            "nodejs": "off"
+        },
+        "client/sw": {
+            "remove-console": "off"
+        },
+        "test/common/cloudfunc.js": {
+            "remove-console": "off"
+        },
+        "storage.js": {
+            "promises/remove-useless-async": "off"
+        },
+        "docker.yml": {
+            "github/set-node-versions": "off"
+        },
+        "vim.js": {
+            "merge-duplicate-functions": "off"
+        },
+        "common": {
+            "nodejs/declare": "off"
+        }
+    }
+}
